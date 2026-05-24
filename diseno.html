@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XP Manager | Diseño y CRC</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Estilo para que parezcan Post-its */
+    .crc-card {
+      background-color: #fef08a; /* Amarillo pastel */
+      box-shadow: 2px 4px 6px rgba(0,0,0,0.1);
+      transform: rotate(-1deg);
+      transition: transform 0.2s;
+    }
+    .crc-card:nth-child(even) { transform: rotate(1deg); }
+    .crc-card:hover { transform: scale(1.02); z-index: 10; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+<!-- Navegación Superior -->
+<nav class="bg-blue-700 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+    <div class="flex items-center space-x-4">
+      <h1 class="font-bold text-xl"><i class="fa-solid fa-code-branch mr-2"></i>XP Manager</h1>
+      <a href="tablero.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Tablero</a>
+      <a href="diseno.html" class="bg-blue-800 px-3 py-2 rounded-md font-medium">Diseño (CRC)</a>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="user-info" class="text-sm font-medium">Cargando...</span>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-sm transition">Salir</button>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+  <!-- PANEL IZQUIERDO: Tarjetas CRC -->
+  <section class="bg-white p-6 rounded-xl shadow-sm border">
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+      <div>
+        <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-note-sticky text-yellow-500 mr-2"></i>Tarjetas CRC</h2>
+        <p class="text-xs text-gray-500 mt-1">Clase, Responsabilidades, Colaboradores.</p>
+      </div>
+      <button id="btn-new-crc" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md font-bold text-sm shadow">
+        + Nueva Tarjeta
+      </button>
+    </div>
+    <div id="crc-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Las tarjetas se inyectarán aquí -->
+    </div>
+  </section>
+
+  <!-- PANEL DERECHO: Pizarra de Diagramas -->
+  <section class="bg-white p-6 rounded-xl shadow-sm border">
+    <div class="flex justify-between items-center mb-6 border-b pb-4">
+      <div>
+        <h2 class="text-xl font-bold text-gray-800"><i class="fa-solid fa-chalkboard text-blue-500 mr-2"></i>Pizarra Visual</h2>
+        <p class="text-xs text-gray-500 mt-1">Sube fotos de la pizarra o diagramas UML básicos.</p>
+      </div>
+      <button id="btn-new-diagram" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md font-bold text-sm shadow">
+        + Subir Imagen
+      </button>
+    </div>
+    <div id="diagrams-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <!-- Los diagramas se inyectarán aquí -->
+    </div>
+  </section>
+</main>
+
+<!-- Modal: Crear Tarjeta CRC -->
+<div id="modal-crc" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50">
+  <div class="bg-yellow-50 rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="bg-yellow-400 px-6 py-4 flex justify-between items-center">
+      <h3 class="text-lg font-bold text-gray-800">Nueva Tarjeta CRC</h3>
+      <button id="close-modal-crc" class="text-gray-800 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-crc" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-bold text-gray-700">Nombre de la Clase</label>
+        <input type="text" id="crc-clase" required class="w-full mt-1 border p-2 rounded focus:ring-yellow-500 focus:border-yellow-500 bg-white" placeholder="Ej: GestorAutenticacion">
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-700">Responsabilidades (Qué hace)</label>
+        <textarea id="crc-resp" required rows="3" class="w-full mt-1 border p-2 rounded text-sm bg-white" placeholder="- Valida credenciales&#10;- Emite tokens de sesión"></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-700">Colaboradores (Con quién habla)</label>
+        <textarea id="crc-colab" rows="2" class="w-full mt-1 border p-2 rounded text-sm bg-white" placeholder="BaseDeDatos, Encriptador"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 rounded shadow">Pegar Tarjeta</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Subir Diagrama -->
+<div id="modal-diagram" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="bg-blue-600 px-6 py-4 flex justify-between items-center">
+      <h3 class="text-lg font-bold text-white">Subir a la Pizarra</h3>
+      <button id="close-modal-diagram" class="text-white hover:text-gray-200"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-diagram" class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-bold text-gray-700">Título del Diagrama</label>
+        <input type="text" id="diag-titulo" required class="w-full mt-1 border p-2 rounded" placeholder="Ej: Diagrama de BD Supabase">
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-700">Archivo de Imagen</label>
+        <input type="file" id="diag-file" accept="image/*" required class="w-full mt-1 border p-2 rounded text-sm file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow">Subir Imagen</button>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/diseno.js"></script>
+</body>
+</html>
