@@ -136,15 +136,26 @@ function setupDragAndDrop() {
             const newStatus = col.getAttribute('data-status');
 
             if (storyId) {
-                // Actualizar visualmente de inmediato para que se sienta rápido
-                const card = document.querySelector(`[data-id="${storyId}"]`);
-                col.appendChild(card);
+                try {
+                    // Visualmente la movemos instantáneamente para fluidez
+                    const card = document.querySelector(`[data-id="${storyId}"]`);
+                    if(card) col.appendChild(card);
 
-                // Actualizar en base de datos
-                await API.updateStoryStatus(storyId, newStatus);
-                // Recargar para sincronizar colores y contadores
-                await renderStories();
-            }
+                    // Disparamos la actualización a Supabase
+                    await API.updateStoryStatus(storyId, newStatus);
+
+                    // Forzamos la recarga para sincronizar colores y contadores
+                    await renderStories();
+
+                } catch (error) {
+                    // SI FALLA, AQUÍ LO VEREMOS
+                    console.error("Error completo:", error);
+                    alert("No se pudo cambiar el estado: " + error.message + "\nRevisa la consola para más detalles.");
+
+                    // Como falló, regresamos las tarjetas a su estado original
+                    await renderStories();
+                }
+                }
         });
     });
 }
@@ -201,39 +212,26 @@ formStory.addEventListener('submit', async (e) => {
 
 // js/tablero.js (Reemplaza la función existente)
 
-window.openEditModal = async function(id) {
-    const story = await API.getStoryDetails(id);
+// Función infalible para abrir la edición desde los detalles
+window.openEditFormFromDetails = async function() {
+    // 1. Tomamos el ID que ya está guardado en el modal actual
+    const storyId = document.getElementById('pair-story-id').value;
+    if(!storyId) return;
 
-    // Llenar cabecera y datos básicos
-    document.getElementById('detail-title').textContent = story.titulo;
-    document.getElementById('detail-status').textContent = story.estado;
-    document.getElementById('detail-description').innerHTML = `Como <b>${story.rol_cliente}</b> quiero <b>${story.deseo}</b> para <b>${story.beneficio}</b>`;
-    document.getElementById('detail-points').textContent = `Puntos de Esfuerzo: ${story.puntos}`;
+    // 2. Traemos la historia fresca de Supabase (evita errores de caché o JSON)
+    const story = await API.getStoryDetails(storyId);
 
-    // Asignar ID a los formularios ocultos
-    document.getElementById('pair-story-id').value = story.id;
+    // 3. Llenamos el formulario de edición
+    document.getElementById('story-id').value = story.id;
+    document.getElementById('story-title').value = story.titulo;
+    document.getElementById('story-role').value = story.rol_cliente;
+    document.getElementById('story-desire').value = story.deseo;
+    document.getElementById('story-benefit').value = story.beneficio;
+    document.getElementById('story-points').value = story.puntos;
 
-    // NUEVO: Guardar los datos de la historia en el botón de edición para usarlos después
-    const btnEditStory = document.getElementById('btn-edit-story-details');
-    if(btnEditStory) {
-        btnEditStory.dataset.story = JSON.stringify(story);
-    }
-
-    // Llenar Pair Programming si existe
-    if (story.story_assignments && story.story_assignments.length > 0) {
-        document.getElementById('select-piloto').value = story.story_assignments[0].piloto_id;
-        document.getElementById('select-copiloto').value = story.story_assignments[0].copiloto_id || "";
-    } else {
-        document.getElementById('select-piloto').value = "";
-        document.getElementById('select-copiloto').value = "";
-    }
-
-    // Pintar links de GitHub y el Timeline
-    renderLinksList(story.traceability_links);
-    await renderHistoryTimeline(story.id);
-
-    // Mostrar modal de detalles
-    modalDetails.classList.remove('hidden');
+    // 4. Cambiamos de modal
+    document.getElementById('modal-details').classList.add('hidden');
+    document.getElementById('modal-story').classList.remove('hidden');
 }
 
 // js/tablero.js (AÑADIR AL FINAL)
@@ -395,4 +393,23 @@ if(btnEditStoryDetails) {
         modalDetails.classList.add('hidden');
         modalStory.classList.remove('hidden');
     });
+}
+
+// js/tablero.js (Pega esto al final del archivo)
+
+// Función para eliminar la historia desde el modal
+window.deleteStoryFromDetails = async function() {
+    const storyId = document.getElementById('pair-story-id').value;
+    if(!storyId) return;
+
+    // Pedimos confirmación porque es una acción destructiva
+    if (confirm("⚠️ ¿Estás seguro de que deseas eliminar esta Historia de Usuario? Todo su historial, enlaces y asignaciones se borrarán para siempre.")) {
+        try {
+            await API.deleteStory(storyId);
+            document.getElementById('modal-details').classList.add('hidden'); // Cerramos modal
+            await renderStories(); // Recargamos el tablero visualmente
+        } catch (error) {
+            alert("Error al eliminar la historia: " + error.message);
+        }
+    }
 }

@@ -118,16 +118,16 @@ const API = {
         if (error) throw error;
     },
 
-// 9. Obtener el historial de versionado (Trigger de Postgres)
-    async getStoryHistory(storyId) {
-        const { data, error } = await supabaseClient
-            .from('story_history')
-            .select('*, modificado_por:auth.users(email)') // Suponiendo que queremos el email del que lo cambió
-            .eq('story_id', storyId)
-            .order('fecha', { ascending: false });
-        if (error) throw error;
-        return data;
-    },
+// 9. Obtener el historial de versionado (Corregido)
+        async getStoryHistory(storyId) {
+            const { data, error } = await supabaseClient
+                .from('story_history')
+                .select('*') // <- Quitamos la lectura bloqueada de auth.users
+                .eq('story_id', storyId)
+                .order('fecha', { ascending: false });
+            if (error) throw error;
+            return data;
+        },
 
     // ... (código anterior de api.js)
 
@@ -200,6 +200,15 @@ const API = {
             .delete()
             .eq('id', id);
 
+        if (error) throw error;
+    },
+
+    // 15. Eliminar Historia de Usuario
+    async deleteStory(storyId) {
+        const { error } = await supabaseClient
+            .from('user_stories')
+            .delete()
+            .eq('id', storyId);
         if (error) throw error;
     }
 };
