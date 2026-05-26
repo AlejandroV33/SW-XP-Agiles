@@ -3,43 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>XP Manager | Login</title>
-  <!-- Tailwind CSS vía CDN para diseño rápido -->
+  <title>Byte Coders | Inicio</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Supabase JS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* Animación suave de entrada para las tarjetas */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-up { animation: fadeUp 0.6s ease-out forwards; opacity: 0; }
+  </style>
 </head>
-<body class="bg-gray-100 h-screen flex items-center justify-center">
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
 
-<div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
-  <div class="text-center mb-8">
-    <h1 class="text-3xl font-bold text-blue-600">XP Manager</h1>
-    <p class="text-gray-500 mt-2">Extreme Programming Tracker</p>
+<nav class="bg-blue-700 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+    <div class="flex items-center space-x-4">
+      <h1 class="font-bold text-xl"><i class="fa-solid fa-code-branch mr-2"></i>XP Manager</h1>
+      <a href="index.html" class="bg-blue-800 px-3 py-2 rounded-md font-medium">Equipo</a>
+      <a href="tablero.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Tablero</a>
+      <a href="diseno.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Diseño (CRC)</a>
+      <a href="pruebas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Pruebas</a>
+      <a href="metricas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Métricas</a>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="user-info" class="text-sm font-medium text-gray-200"></span>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-sm font-medium transition text-white">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </div>
   </div>
+</nav>
 
-  <form id="login-form" class="space-y-6">
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
-      <input type="email" id="email" required
-             class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+<header class="text-center py-16 bg-gradient-to-b from-gray-100 to-gray-50 border-b border-gray-200 shadow-sm">
+  <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-purple-600 mb-4 tracking-tight">
+    Byte Coders
+  </h1>
+  <p class="text-lg text-gray-500 font-medium max-w-2xl mx-auto">
+    Software construido con agilidad, respaldado por Extreme Programming.
+  </p>
+</header>
+
+<main class="flex-1 max-w-6xl mx-auto px-4 py-12 w-full">
+  <h2 class="text-2xl font-bold text-gray-700 mb-8 text-center border-b pb-4"><i class="fa-solid fa-users text-blue-500 mr-2"></i>Nuestro Equipo</h2>
+
+  <div id="team-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <p class="text-gray-500 text-center col-span-full">Cargando perfiles...</p>
+  </div>
+</main>
+
+<footer class="bg-gray-100 py-8 border-t border-gray-200 mt-auto">
+  <div class="max-w-4xl mx-auto text-center px-4">
+    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Core Values</h3>
+    <div class="flex flex-wrap justify-center gap-6 text-sm text-gray-500 font-medium">
+      <span class="hover:text-blue-600 transition cursor-default"><i class="fa-regular fa-comments mr-1"></i> Comunicación</span>
+      <span class="hover:text-blue-600 transition cursor-default"><i class="fa-solid fa-leaf mr-1"></i> Simplicidad</span>
+      <span class="hover:text-blue-600 transition cursor-default"><i class="fa-solid fa-arrows-rotate mr-1"></i> Retroalimentación</span>
+      <span class="hover:text-blue-600 transition cursor-default"><i class="fa-solid fa-fire-flame-curved mr-1"></i> Coraje</span>
+      <span class="hover:text-blue-600 transition cursor-default"><i class="fa-solid fa-handshake-angle mr-1"></i> Respeto</span>
     </div>
+  </div>
+</footer>
 
-    <div>
-      <label class="block text-sm font-medium text-gray-700">Contraseña</label>
-      <input type="password" id="password" required
-             class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-    </div>
-
-    <button type="submit" id="login-btn"
-            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-      Entrar al Proyecto
-    </button>
-    <p id="error-msg" class="text-red-500 text-sm text-center hidden mt-2"></p>
-  </form>
-</div>
-
-<!-- Scripts en orden estricto -->
 <script src="js/supabase.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const grid = document.getElementById('team-grid');
+    try {
+      const members = await API.getTeamMembers();
+      grid.innerHTML = '';
+
+      members.forEach((member, index) => {
+        const delay = index * 100; // Retraso escalonado para la animación
+        const rolNombre = member.roles ? member.roles.nombre : 'Sin rol asignado';
+        const inicial = member.nombre.charAt(0).toUpperCase();
+
+        grid.innerHTML += `
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col items-center text-center transform transition-all duration-300 hover:-translate-y-2 hover:shadow-xl animate-fade-up group cursor-default" style="animation-delay: ${delay}ms">
+                            <div class="w-20 h-20 bg-gradient-to-tr from-blue-100 to-purple-100 rounded-full flex items-center justify-center text-3xl font-bold text-blue-600 mb-4 group-hover:scale-110 transition-transform duration-300 shadow-inner">
+                                ${inicial}
+                            </div>
+                            <h3 class="font-bold text-gray-800 text-lg">${member.nombre}</h3>
+                            <span class="bg-blue-50 text-blue-700 text-xs font-bold px-3 py-1 rounded-full mt-2 border border-blue-100">${rolNombre}</span>
+                        </div>
+                    `;
+      });
+    } catch (error) {
+      grid.innerHTML = '<p class="text-red-500 col-span-full">Error al cargar el equipo.</p>';
+      console.error(error);
+    }
+  });
+</script>
 </body>
 </html>

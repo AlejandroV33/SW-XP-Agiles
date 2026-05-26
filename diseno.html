@@ -29,15 +29,25 @@
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
     <div class="flex items-center space-x-4">
       <h1 class="font-bold text-xl"><i class="fa-solid fa-code-branch mr-2"></i>XP Manager</h1>
+      <a href="index.html" class="bg-blue-800 px-3 py-2 rounded-md font-medium">Equipo</a>
       <a href="tablero.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Tablero</a>
       <a href="diseno.html" class="bg-blue-800 px-3 py-2 rounded-md font-medium">Diseño (CRC)</a>
+      <a href="pruebas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Pruebas</a>
+      <a href="metricas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Métricas</a>
     </div>
     <div class="flex items-center space-x-4">
-      <span id="user-info" class="text-sm font-medium">Cargando...</span>
-      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-sm transition">Salir</button>
+      <span id="user-info" class="text-sm font-medium text-gray-200"></span>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-sm font-medium transition text-white">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
     </div>
   </div>
 </nav>
+
+<header class="bg-white shadow-sm px-8 py-3 flex items-center justify-center border-b">
+  <span class="text-gray-600 font-bold mr-3">Filtrando por Iteración:</span>
+  <select id="iteration-select-design" class="bg-gray-100 border-gray-300 rounded-md py-1 px-4 focus:ring-blue-500 font-semibold text-gray-800"></select>
+</header>
 
 <main class="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
 

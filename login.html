@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XP Manager | Login</title>
+  <!-- Tailwind CSS vía CDN para diseño rápido -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+
+<div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+  <div class="text-center mb-8">
+    <h1 class="text-3xl font-bold text-blue-600">XP Manager</h1>
+    <p class="text-gray-500 mt-2">Extreme Programming Tracker</p>
+  </div>
+
+  <form id="login-form" class="space-y-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+      <input type="email" id="email" required
+             class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700">Contraseña</label>
+      <input type="password" id="password" required
+             class="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+    </div>
+
+    <button type="submit" id="login-btn"
+            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
+      Entrar al Proyecto
+    </button>
+    <p id="error-msg" class="text-red-500 text-sm text-center hidden mt-2"></p>
+  </form>
+</div>
+
+<!-- Scripts en orden estricto -->
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+</body>
+</html>

@@ -5,25 +5,65 @@ const crcGrid = document.getElementById('crc-grid');
 const diagramsGrid = document.getElementById('diagrams-grid');
 const modalCRC = document.getElementById('modal-crc');
 const modalDiagram = document.getElementById('modal-diagram');
+// js/diseno.js
+let currentIterationId = null;
+const iterationSelectDesign = document.getElementById('iteration-select-design');
 
 // Inicializar vista
-document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Mostrar usuario logueado
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (user) document.getElementById('user-info').textContent = user.email;
+// js/diseno.js (Busca esta sección y actualízala)
 
-    // 2. Cargar datos
+document.addEventListener('DOMContentLoaded', async () => {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const userInfoEl = document.getElementById('user-info');
+    if (user && userInfoEl) userInfoEl.textContent = user.email;
+
+    const iterations = await API.getIterations();
+    if(iterations.length > 0) {
+        iterations.forEach(iter => {
+            const option = document.createElement('option');
+            option.value = iter.id;
+            option.textContent = iter.nombre;
+            iterationSelectDesign.appendChild(option);
+        });
+
+        // --- MAGIA DE LOCALSTORAGE ---
+        const savedIteration = localStorage.getItem('xp_current_iteration');
+        const iterationExists = iterations.some(i => i.id === savedIteration);
+
+        if (savedIteration && iterationExists) {
+            currentIterationId = savedIteration;
+            iterationSelectDesign.value = savedIteration;
+        } else {
+            currentIterationId = iterations[0].id;
+            localStorage.setItem('xp_current_iteration', currentIterationId);
+        }
+        // -----------------------------
+    }
+
     await renderCRCCards();
     await renderDiagrams();
 });
+
+iterationSelectDesign.addEventListener('change', async (e) => {
+    currentIterationId = e.target.value;
+    localStorage.setItem('xp_current_iteration', currentIterationId); // Guardamos la preferencia
+    await renderCRCCards();
+});
+
+/*// Escuchar cambios en el selector
+iterationSelectDesign.addEventListener('change', async (e) => {
+    currentIterationId = e.target.value;
+    await renderCRCCards(); // Recargar tarjetas de esa iteración
+});*/
 
 // ==========================================
 // MÓDULO: TARJETAS CRC
 // ==========================================
 
 async function renderCRCCards() {
+    if(!currentIterationId) return;
     crcGrid.innerHTML = '<p class="text-sm text-gray-500">Cargando tarjetas...</p>';
-    const cards = await API.getCRCCards();
+    const cards = await API.getCRCCards(currentIterationId); // Pasamos el ID
     crcGrid.innerHTML = '';
 
     if (cards.length === 0) {
@@ -56,6 +96,7 @@ document.getElementById('btn-new-crc').addEventListener('click', () => modalCRC.
 document.getElementById('close-modal-crc').addEventListener('click', () => modalCRC.classList.add('hidden'));
 
 // Guardar CRC
+// Modificar el guardado para incluir la iteración
 document.getElementById('form-crc').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
@@ -66,7 +107,8 @@ document.getElementById('form-crc').addEventListener('submit', async (e) => {
         await API.saveCRCCard({
             nombre_clase: document.getElementById('crc-clase').value,
             responsabilidades: document.getElementById('crc-resp').value,
-            colaboradores: document.getElementById('crc-colab').value
+            colaboradores: document.getElementById('crc-colab').value,
+            iteration_id: currentIterationId // <- Inyectamos la iteración
         });
 
         e.target.reset();

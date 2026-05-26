@@ -27,37 +27,40 @@ const API = {
         return data;
     },
 
-    // 3. Crear o actualizar una historia
-    async saveStory(storyData) {
-        // Si tiene ID, actualiza. Si no, inserta nueva.
-        const isUpdate = storyData.id !== "";
+    // AÑADE ESTA NUEVA FUNCIÓN: Crear nueva iteración
+    async createIteration(nombre) {
+        const { data, error } = await supabaseClient
+            .from('iterations')
+            .insert([{ nombre: nombre, estado: 'Activa' }])
+            .select();
+        if (error) throw error;
+        return data[0];
+    },
 
+    // ACTUALIZA LA FUNCIÓN 3: Permitir modificar la fecha de creación
+    async saveStory(storyData) {
+        const isUpdate = storyData.id !== "";
         const payload = {
             titulo: storyData.titulo,
             rol_cliente: storyData.rol_cliente,
             deseo: storyData.deseo,
             beneficio: storyData.beneficio,
             puntos: storyData.puntos,
-            iteration_id: storyData.iteration_id
+            iteration_id: storyData.iteration_id,
+            creado_en: storyData.creado_en // <- AÑADIMOS LA FECHA EDITABLE
         };
 
         if (!isUpdate) {
-            // Asignar quién la crea (el usuario logueado)
             const { data: { user } } = await supabaseClient.auth.getUser();
             payload.creado_por = user.id;
         }
 
         let query = supabaseClient.from('user_stories');
-
-        if (isUpdate) {
-            query = query.update(payload).eq('id', storyData.id);
-        } else {
-            query = query.insert([payload]);
-        }
+        if (isUpdate) query = query.update(payload).eq('id', storyData.id);
+        else query = query.insert([payload]);
 
         const { data, error } = await query.select();
-
-        if (error) { throw error; }
+        if (error) throw error;
         return data[0];
     },
 
@@ -135,17 +138,18 @@ const API = {
     // MÓDULO DE DISEÑO (CRC y DIAGRAMAS)
     // ==========================================
 
-    // 10. Obtener todas las tarjetas CRC
-    async getCRCCards() {
+    // ACTUALIZA LA FUNCIÓN 10: Filtrar CRC por Iteración
+    async getCRCCards(iterationId) {
         const { data, error } = await supabaseClient
             .from('crc_cards')
             .select('*')
+            .eq('iteration_id', iterationId) // <- FILTRO
             .order('creado_en', { ascending: false });
         if (error) { console.error('Error cargando CRC:', error); return []; }
         return data;
     },
 
-    // 11. Guardar una nueva tarjeta CRC
+    // ACTUALIZA LA FUNCIÓN 11: Guardar CRC con su Iteración
     async saveCRCCard(crcData) {
         const { error } = await supabaseClient.from('crc_cards').insert([crcData]);
         if (error) throw error;
@@ -209,6 +213,96 @@ const API = {
             .from('user_stories')
             .delete()
             .eq('id', storyId);
+        if (error) throw error;
+    },
+
+    // 16. Obtener el equipo completo con el nombre de su rol
+    async getTeamMembers() {
+        const { data, error } = await supabaseClient
+            .from('profiles')
+            .select(`
+                id, 
+                nombre, 
+                avatar_url,
+                roles (nombre)
+            `);
+        if (error) throw error;
+        return data;
+    },
+
+    // ==========================================
+    // MÓDULO DE PRUEBAS (TESTING XP)
+    // ==========================================
+
+    // 17. Obtener pruebas filtradas por iteración
+    async getTests(iterationId) {
+        const { data, error } = await supabaseClient
+            .from('tests')
+            .select('*')
+            .eq('iteration_id', iterationId)
+            .order('creado_en', { ascending: false });
+        if (error) throw error;
+        return data;
+    },
+
+    // 18. Crear o Actualizar una prueba
+    async saveTest(testData) {
+        const isUpdate = testData.id !== "";
+        let query = supabaseClient.from('tests');
+
+        if (isUpdate) {
+            query = query.update({
+                descripcion: testData.descripcion,
+                tipo: testData.tipo
+            }).eq('id', testData.id);
+        } else {
+            query = query.insert([{
+                descripcion: testData.descripcion,
+                tipo: testData.tipo,
+                iteration_id: testData.iteration_id
+            }]);
+        }
+
+        const { error } = await query;
+        if (error) throw error;
+    },
+
+    // 19. Eliminar prueba
+    async deleteTest(id) {
+        const { error } = await supabaseClient.from('tests').delete().eq('id', id);
+        if (error) throw error;
+    },
+
+    // 20. Cambiar el estado (Pasada / Fallida / Pendiente)
+    async updateTestStatus(id, estado) {
+        const { error } = await supabaseClient.from('tests').update({ estado: estado }).eq('id', id);
+        if (error) throw error;
+    },
+
+    // ==========================================
+    // MÓDULO DEL TRACKER (MÉTRICAS Y PLANEACIÓN)
+    // ==========================================
+
+    // 21. Obtener detalles específicos de una iteración
+    async getIterationDetails(iterationId) {
+        const { data, error } = await supabaseClient
+            .from('iterations')
+            .select('*')
+            .eq('id', iterationId)
+            .single();
+        if (error) throw error;
+        return data;
+    },
+
+    // 22. Guardar el Plan de Iteración
+    async saveIterationPlan(iterationId, velocidadObjetivo, notas) {
+        const { error } = await supabaseClient
+            .from('iterations')
+            .update({
+                velocidad_objetivo: velocidadObjetivo,
+                notas_planeacion: notas
+            })
+            .eq('id', iterationId);
         if (error) throw error;
     }
 };

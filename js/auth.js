@@ -1,28 +1,38 @@
 // js/auth.js
 
-// 1. Redirigir si ya está logueado
 async function checkCurrentSession() {
+    // 1. Preguntamos a Supabase si hay una sesión activa
     const { data: { session } } = await supabaseClient.auth.getSession();
-    // Si hay sesión y estamos en index.html, lo mandamos al tablero
-    if (session && window.location.pathname.includes('index.html')) {
-        window.location.href = 'tablero.html';
+
+    // 2. Leemos la URL actual en minúsculas
+    const currentPath = window.location.pathname.toLowerCase();
+
+    // 3. Verificamos de forma segura si estamos en la página de login
+    // Esto evita problemas si tu servidor oculta el ".html"
+    const isLoginPage = currentPath.includes('login');
+
+    // REGLA A: Si NO hay sesión y NO estoy en el login -> Forzar ida al login
+    if (!session && !isLoginPage) {
+        window.location.replace('login.html');
+        return; // Detenemos el script aquí
     }
-    // Si NO hay sesión y NO estamos en index.html, lo mandamos al login (protección de rutas)
-    if (!session && !window.location.pathname.includes('index.html')) {
-        window.location.href = 'index.html';
+
+    // REGLA B: Si HAY sesión y estoy en el login -> Forzar ida a la portada (Byte Coders)
+    if (session && isLoginPage) {
+        window.location.replace('index.html');
+        return; // Detenemos el script aquí
     }
 }
 
-// Ejecutar revisión de sesión al cargar cualquier página
+// Ejecutamos la validación
 checkCurrentSession();
 
-// 2. Lógica del formulario de Login (solo si estamos en index.html)
+// Lógica del formulario de login (Solo se ejecuta si el formulario existe en el DOM)
 const loginForm = document.getElementById('login-form');
 
 if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const errorMsg = document.getElementById('error-msg');
@@ -31,11 +41,7 @@ if (loginForm) {
         loginBtn.textContent = 'Verificando...';
         loginBtn.disabled = true;
 
-        // Petición a Supabase Auth
-        const { data, error } = await supabaseClient.auth.signInWithPassword({
-            email: email,
-            password: password,
-        });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
         if (error) {
             errorMsg.textContent = error.message;
@@ -43,14 +49,14 @@ if (loginForm) {
             loginBtn.textContent = 'Entrar al Proyecto';
             loginBtn.disabled = false;
         } else {
-            // ¡Éxito! Redirigir al tablero Kanban
-            window.location.href = 'tablero.html';
+            // Éxito: Lo mandamos a la portada del equipo
+            window.location.replace('index.html');
         }
     });
 }
 
-// 3. Función global para cerrar sesión (la usaremos en el Navbar)
+// Función global para salir de la cuenta
 window.logout = async function() {
     await supabaseClient.auth.signOut();
-    window.location.href = 'index.html';
+    window.location.replace('login.html');
 }

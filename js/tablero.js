@@ -10,11 +10,58 @@ const formStory = document.getElementById('form-story');
 const btnNewStory = document.getElementById('btn-new-story');
 const btnCloseModal = document.getElementById('close-modal-story');
 
-// Al cargar la página, inicializamos el tablero
+// js/tablero.js (Busca esta sección y actualízala)
+
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadUserInfo();
-    await loadIterations();
+    // 1. Cargar datos del usuario
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    const userInfoEl = document.getElementById('user-info');
+    if (user && userInfoEl) {
+        userInfoEl.textContent = user.email;
+    }
+
+    // 2. Cargar Sprints (Iteraciones)
+    const iterations = await API.getIterations();
+    iterationSelect.innerHTML = '';
+
+    if (iterations.length === 0) {
+        iterationSelect.innerHTML = '<option value="">No hay iteraciones</option>';
+        return;
+    }
+
+    iterations.forEach(iter => {
+        const option = document.createElement('option');
+        option.value = iter.id;
+        option.textContent = iter.nombre;
+        iterationSelect.appendChild(option);
+    });
+
+    // --- MAGIA DE LOCALSTORAGE ---
+    const savedIteration = localStorage.getItem('xp_current_iteration');
+    const iterationExists = iterations.some(i => i.id === savedIteration);
+
+    if (savedIteration && iterationExists) {
+        currentIterationId = savedIteration;
+        iterationSelect.value = savedIteration;
+    } else {
+        currentIterationId = iterations[0].id;
+        localStorage.setItem('xp_current_iteration', currentIterationId);
+    }
+    // -----------------------------
+
+    await renderStories();
     setupDragAndDrop();
+
+    // Cargar perfiles para los selects del modal
+    allProfiles = await API.getProfiles();
+    populateProfileSelects();
+});
+
+// Escuchar cambios en el selector de iteración
+iterationSelect.addEventListener('change', async (e) => {
+    currentIterationId = e.target.value;
+    localStorage.setItem('xp_current_iteration', currentIterationId); // Guardamos la preferencia
+    await renderStories();
 });
 
 // 1. Cargar datos del usuario logueado en el Navbar
@@ -51,6 +98,19 @@ async function loadIterations() {
 iterationSelect.addEventListener('change', async (e) => {
     currentIterationId = e.target.value;
     await renderStories();
+});
+
+//funcion para que funcione por iteraciones
+document.getElementById('btn-new-iteration').addEventListener('click', async () => {
+    const nombre = prompt("Nombre de la nueva iteración (Ej: Iteración 2):");
+    if (nombre && nombre.trim() !== "") {
+        try {
+            await API.createIteration(nombre);
+            await loadIterations(); // Recarga el selector
+        } catch (error) {
+            alert("Error al crear la iteración: " + error.message);
+        }
+    }
 });
 
 // 3. Pintar las tarjetas en las columnas (Render Kanban)
@@ -173,6 +233,12 @@ function handleDragEnd(e) {
 btnNewStory.addEventListener('click', () => {
     formStory.reset();
     document.getElementById('story-id').value = '';
+
+    // Ajustar formato datetime-local para la hora actual
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('story-date').value = now.toISOString().slice(0,16);
+
     modalStory.classList.remove('hidden');
 });
 
@@ -195,7 +261,8 @@ formStory.addEventListener('submit', async (e) => {
         deseo: document.getElementById('story-desire').value,
         beneficio: document.getElementById('story-benefit').value,
         puntos: parseInt(document.getElementById('story-points').value),
-        iteration_id: currentIterationId
+        iteration_id: currentIterationId,
+        creado_en: document.getElementById('story-date').value // <- Fecha inyectada
     };
 
     try {
@@ -220,6 +287,10 @@ window.openEditFormFromDetails = async function() {
 
     // 2. Traemos la historia fresca de Supabase (evita errores de caché o JSON)
     const story = await API.getStoryDetails(storyId);
+
+    const dateObj = new Date(story.creado_en);
+    dateObj.setMinutes(dateObj.getMinutes() - dateObj.getTimezoneOffset());
+    document.getElementById('story-date').value = dateObj.toISOString().slice(0,16);
 
     // 3. Llenamos el formulario de edición
     document.getElementById('story-id').value = story.id;
@@ -343,7 +414,8 @@ function renderLinksList(links) {
     });
 }
 
-// 5. Pintar la Línea de Tiempo (Versionado Automático)
+// js/tablero.js (Reemplaza la función existente)
+
 async function renderHistoryTimeline(storyId) {
     const history = await API.getStoryHistory(storyId);
     const container = document.getElementById('history-timeline');
@@ -354,17 +426,27 @@ async function renderHistoryTimeline(storyId) {
         return;
     }
 
+    // Mapa de colores para Tailwind según el estado
+    const colorMap = {
+        'Pendiente': 'text-gray-500',
+        'En Progreso': 'text-blue-500',
+        'Pruebas': 'text-yellow-500',
+        'Hecho': 'text-green-500'
+    };
+
     history.forEach(h => {
-        // h.datos_anteriores contiene el JSON de cómo estaba la tarjeta ANTES del cambio
         const dataOld = h.datos_anteriores;
         const date = new Date(h.fecha).toLocaleString();
 
+        // Obtenemos el color, si por algún error no existe, usamos gris por defecto
+        const colorClass = colorMap[dataOld.estado] || 'text-gray-500';
+
         container.innerHTML += `
             <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active mb-4">
-                <div class="flex items-center justify-center w-6 h-6 rounded-full border border-white bg-blue-500 text-slate-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10"></div>
+                <div class="flex items-center justify-center w-6 h-6 rounded-full border border-white bg-slate-300 text-slate-500 shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10"></div>
                 <div class="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] bg-white p-3 rounded border shadow-sm text-xs">
                     <time class="font-bold text-gray-500">${date}</time>
-                    <p class="text-gray-700 mt-1">Estado anterior: <span class="font-bold text-blue-600">${dataOld.estado}</span></p>
+                    <p class="text-gray-700 mt-1">Estado anterior: <span class="font-bold ${colorClass}">${dataOld.estado}</span></p>
                     <p class="text-gray-500 mt-1 truncate">Puntos: ${dataOld.puntos}</p>
                 </div>
             </div>

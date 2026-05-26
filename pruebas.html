@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XP Manager | Pruebas y TDD</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+
+<nav class="bg-blue-700 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+    <div class="flex items-center space-x-4">
+      <h1 class="font-bold text-xl"><i class="fa-solid fa-code-branch mr-2"></i>XP Manager</h1>
+      <a href="index.html" class="bg-blue-800 px-3 py-2 rounded-md font-medium">Equipo</a>
+      <a href="tablero.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Tablero</a>
+      <a href="diseno.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Diseño (CRC)</a>
+      <a href="pruebas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Pruebas</a>
+      <a href="metricas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Métricas</a>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="user-info" class="text-sm font-medium text-gray-200"></span>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-sm font-medium transition text-white">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </div>
+  </div>
+</nav>
+
+<header class="bg-white shadow-sm px-8 py-3 flex justify-between items-center border-b">
+  <div>
+    <span class="text-gray-600 font-bold mr-3">Filtrando por Iteración:</span>
+    <select id="iteration-select-tests" class="bg-gray-100 border-gray-300 rounded-md py-1 px-4 focus:ring-blue-500 font-semibold text-gray-800"></select>
+  </div>
+  <button id="btn-new-test" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded shadow-sm transition">
+    + Nueva Prueba
+  </button>
+</header>
+
+<main class="flex-1 max-w-7xl mx-auto w-full p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+  <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-4"><i class="fa-solid fa-clipboard-check text-green-500 mr-2"></i>Pruebas de Aceptación</h2>
+    <div id="list-aceptacion" class="space-y-3">
+    </div>
+  </section>
+
+  <section class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-4"><i class="fa-solid fa-microscope text-blue-500 mr-2"></i>Pruebas Unitarias (TDD)</h2>
+    <div id="list-unitaria" class="space-y-3">
+    </div>
+  </section>
+
+</main>
+
+<div id="modal-test" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 flex items-center justify-center z-50">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+    <div class="bg-indigo-600 px-6 py-4 flex justify-between items-center">
+      <h3 class="text-lg font-bold text-white">Formulario de Prueba</h3>
+      <button id="close-modal-test" class="text-white hover:text-gray-200"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="form-test" class="p-6 space-y-4">
+      <input type="hidden" id="test-id">
+      <div>
+        <label class="block text-sm font-bold text-gray-700">Tipo de Prueba</label>
+        <select id="test-tipo" class="w-full mt-1 border p-2 rounded focus:ring-indigo-500">
+          <option value="Aceptacion">Prueba de Aceptación</option>
+          <option value="Unitaria">Prueba Unitaria</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-700">Descripción / Qué debe validar</label>
+        <textarea id="test-desc" required rows="3" class="w-full mt-1 border p-2 rounded text-sm" placeholder="Ej: Al enviar el formulario sin email, debe mostrar error..."></textarea>
+      </div>
+      <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded shadow">Guardar Prueba</button>
+    </form>
+  </div>
+</div>
+
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/pruebas.js"></script>
+</body>
+</html>

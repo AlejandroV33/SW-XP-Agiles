@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XP Manager | Tracker Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col font-sans">
+
+<nav class="bg-blue-700 text-white shadow-md">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+    <div class="flex items-center space-x-4">
+      <h1 class="font-bold text-xl"><i class="fa-solid fa-code-branch mr-2"></i>XP Manager</h1>
+      <a href="index.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Equipo</a>
+      <a href="tablero.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Tablero</a>
+      <a href="diseno.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Diseño (CRC)</a>
+      <a href="pruebas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Pruebas</a>
+      <a href="metricas.html" class="hover:bg-blue-600 px-3 py-2 rounded-md font-medium text-blue-100">Métricas</a>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span id="user-info" class="text-sm font-medium text-gray-200"></span>
+      <button onclick="logout()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded-md text-sm font-medium transition text-white">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </div>
+  </div>
+</nav>
+
+<header class="bg-white shadow-sm px-8 py-3 flex items-center border-b">
+  <span class="text-gray-600 font-bold mr-3">Analizando Iteración:</span>
+  <select id="iteration-select-metrics" class="bg-gray-100 border-gray-300 rounded-md py-1 px-4 focus:ring-blue-500 font-semibold text-gray-800"></select>
+</header>
+
+<main class="flex-1 max-w-7xl mx-auto w-full p-6 space-y-6">
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center">
+      <div class="p-3 bg-blue-100 text-blue-600 rounded-lg text-2xl mr-4"><i class="fa-solid fa-list-check"></i></div>
+      <div>
+        <p class="text-sm font-bold text-gray-400 uppercase tracking-wide">Puntos Comprometidos</p>
+        <h3 id="kpi-total" class="text-3xl font-extrabold text-gray-800">0</h3>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center">
+      <div class="p-3 bg-green-100 text-green-600 rounded-lg text-2xl mr-4"><i class="fa-solid fa-gauge-high"></i></div>
+      <div>
+        <p class="text-sm font-bold text-gray-400 uppercase tracking-wide">Velocidad Actual (Hecho)</p>
+        <h3 id="kpi-velocidad" class="text-3xl font-extrabold text-green-600">0</h3>
+      </div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 flex items-center">
+      <div class="p-3 bg-purple-100 text-purple-600 rounded-lg text-2xl mr-4"><i class="fa-solid fa-bullseye"></i></div>
+      <div>
+        <p class="text-sm font-bold text-gray-400 uppercase tracking-wide">Velocidad Objetivo</p>
+        <h3 id="kpi-objetivo" class="text-3xl font-extrabold text-purple-600">0</h3>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <div class="flex justify-between items-end mb-2">
+      <h2 class="font-bold text-gray-700">Avance de la Iteración</h2>
+      <span id="progress-text" class="text-lg font-extrabold text-blue-600">0%</span>
+    </div>
+    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden shadow-inner">
+      <div id="progress-bar" class="bg-blue-600 h-4 rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+    <h2 class="text-xl font-bold text-gray-800 border-b pb-3 mb-4"><i class="fa-solid fa-chess-knight text-gray-600 mr-2"></i>Iteration Planning (Registro del Tracker)</h2>
+    <form id="form-plan" class="space-y-4">
+      <div class="w-1/3">
+        <label class="block text-sm font-bold text-gray-700 mb-1">Velocidad Objetivo (Puntos)</label>
+        <input type="number" id="plan-velocidad" required class="w-full border border-gray-300 rounded-md p-2 bg-gray-50 focus:ring-blue-500">
+        <p class="text-xs text-gray-500 mt-1">Basado en la iteración anterior.</p>
+      </div>
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-1">Notas de Planificación y Riesgos</label>
+        <textarea id="plan-notas" rows="4" class="w-full border border-gray-300 rounded-md p-3 bg-gray-50 focus:ring-blue-500" placeholder="Ej: Acordamos enfocarnos en el módulo de autenticación. Riesgo principal: conexión con Supabase..."></textarea>
+      </div>
+      <button type="submit" class="bg-gray-800 hover:bg-gray-900 text-white font-bold py-2 px-6 rounded shadow transition">
+        Guardar Plan de Iteración
+      </button>
+    </form>
+  </div>
+</main>
+
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/api.js"></script>
+<script src="js/metricas.js"></script>
+</body>
+</html>
