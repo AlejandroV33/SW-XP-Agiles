@@ -83,10 +83,21 @@ function createTestCardHTML(test) {
     if(test.estado === 'Pasada') { bgStatus = 'bg-green-100 text-green-700'; iconStatus = '<i class="fa-solid fa-check-circle"></i> Pasada'; }
     if(test.estado === 'Fallida') { bgStatus = 'bg-red-100 text-red-700'; iconStatus = '<i class="fa-solid fa-circle-xmark"></i> Fallida'; }
 
+    const githubLinkHTML = test.github_url ? `
+        <div class="mt-1">
+            <a href="${test.github_url}" target="_blank" class="text-blue-600 hover:text-blue-800 text-xs flex items-center gap-1">
+                <i class="fa-brands fa-github"></i> Ver Prueba en GitHub
+            </a>
+        </div>
+    ` : '';
+
     return `
         <div class="p-4 border rounded-lg shadow-sm bg-gray-50 flex flex-col gap-3">
             <div class="flex justify-between items-start">
-                <p class="text-sm text-gray-800 font-medium leading-tight flex-1 mr-4">${test.descripcion}</p>
+                <div class="flex-1 mr-4">
+                    <p class="text-sm text-gray-800 font-medium leading-tight">${test.descripcion}</p>
+                    ${githubLinkHTML}
+                </div>
                 <span class="${bgStatus} text-xs font-bold px-2 py-1 rounded whitespace-nowrap">${iconStatus}</span>
             </div>
             
@@ -96,7 +107,7 @@ function createTestCardHTML(test) {
                     <button onclick="changeTestStatus('${test.id}', 'Fallida')" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 font-bold py-1 px-2 rounded border border-red-200 transition">Falló</button>
                 </div>
                 <div class="flex space-x-3 text-gray-400">
-                    <button onclick="openEditTest('${test.id}', \`${test.descripcion.replace(/`/g, "'")}\`, '${test.tipo}')" class="hover:text-blue-500 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="openEditTest('${test.id}', \`${test.descripcion.replace(/`/g, "'")}\`, '${test.tipo}', '${test.github_url || ''}')" class="hover:text-blue-500 transition" title="Editar"><i class="fa-solid fa-pen"></i></button>
                     <button onclick="deleteTest('${test.id}')" class="hover:text-red-500 transition" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
                 </div>
             </div>
@@ -108,8 +119,22 @@ function createTestCardHTML(test) {
 document.getElementById('btn-new-test').addEventListener('click', () => {
     document.getElementById('form-test').reset();
     document.getElementById('test-id').value = '';
+    toggleGithubField('Aceptacion'); // Por defecto al resetear
     modalTest.classList.remove('hidden');
 });
+
+document.getElementById('test-tipo').addEventListener('change', (e) => {
+    toggleGithubField(e.target.value);
+});
+
+function toggleGithubField(tipo) {
+    const container = document.getElementById('github-link-container');
+    if (tipo === 'Unitaria') {
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+    }
+}
 
 document.getElementById('close-modal-test').addEventListener('click', () => modalTest.classList.add('hidden'));
 
@@ -123,6 +148,7 @@ document.getElementById('form-test').addEventListener('submit', async (e) => {
             id: document.getElementById('test-id').value,
             tipo: document.getElementById('test-tipo').value,
             descripcion: document.getElementById('test-desc').value,
+            github_url: document.getElementById('test-github').value,
             iteration_id: currentIterationId
         });
         modalTest.classList.add('hidden');
@@ -135,10 +161,12 @@ document.getElementById('form-test').addEventListener('submit', async (e) => {
 });
 
 // 6. Funciones Globales para botones de cada tarjeta
-window.openEditTest = function(id, desc, tipo) {
+window.openEditTest = function(id, desc, tipo, github_url) {
     document.getElementById('test-id').value = id;
     document.getElementById('test-desc').value = desc;
     document.getElementById('test-tipo').value = tipo;
+    document.getElementById('test-github').value = github_url || '';
+    toggleGithubField(tipo);
     modalTest.classList.remove('hidden');
 }
 

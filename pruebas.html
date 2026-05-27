@@ -74,6 +74,10 @@
         <label class="block text-sm font-bold text-gray-700">Descripción / Qué debe validar</label>
         <textarea id="test-desc" required rows="3" class="w-full mt-1 border p-2 rounded text-sm" placeholder="Ej: Al enviar el formulario sin email, debe mostrar error..."></textarea>
       </div>
+      <div id="github-link-container" class="hidden">
+        <label class="block text-sm font-bold text-gray-700">Link de GitHub (Prueba Unitaria)</label>
+        <input type="url" id="test-github" class="w-full mt-1 border p-2 rounded text-sm" placeholder="https://github.com/usuario/repo/blob/main/tests/unit_test.js">
+      </div>
       <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded shadow">Guardar Prueba</button>
     </form>
   </div>

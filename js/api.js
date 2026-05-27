@@ -253,12 +253,14 @@ const API = {
         if (isUpdate) {
             query = query.update({
                 descripcion: testData.descripcion,
-                tipo: testData.tipo
+                tipo: testData.tipo,
+                github_url: testData.github_url
             }).eq('id', testData.id);
         } else {
             query = query.insert([{
                 descripcion: testData.descripcion,
                 tipo: testData.tipo,
+                github_url: testData.github_url,
                 iteration_id: testData.iteration_id
             }]);
         }
