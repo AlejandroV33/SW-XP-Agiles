@@ -60,24 +60,38 @@ iterationSelectDesign.addEventListener('change', async (e) => {
 // MÓDULO: TARJETAS CRC
 // ==========================================
 
-async function renderCRCCards() {
-    if(!currentIterationId) return;
-    crcGrid.innerHTML = '<p class="text-sm text-gray-500">Cargando tarjetas...</p>';
-    const cards = await API.getCRCCards(currentIterationId); // Pasamos el ID
-    crcGrid.innerHTML = '';
+// js/diseno.js (Reemplaza la función existente)
 
-    if (cards.length === 0) {
-        crcGrid.innerHTML = '<p class="text-sm text-gray-400 italic">No hay tarjetas CRC creadas aún.</p>';
+async function renderCRCCards() {
+    // 1. Validamos que tengamos una iteración seleccionada
+    if(!currentIterationId || currentIterationId === 'undefined') {
+        crcGrid.innerHTML = '<p class="text-sm text-gray-500">Selecciona una iteración válida primero.</p>';
         return;
     }
 
+    crcGrid.innerHTML = '<p class="text-sm text-gray-500">Cargando tarjetas...</p>';
+
+    // 2. PASAMOS EL ID ESTRICTAMENTE A LA API
+    const cards = await API.getCRCCards(currentIterationId);
+
+    crcGrid.innerHTML = '';
+
+    if (cards.length === 0) {
+        crcGrid.innerHTML = '<p class="text-sm text-gray-400 italic">No hay tarjetas CRC en esta iteración.</p>';
+        return;
+    }
+
+    // 3. Pintamos cada tarjeta
     cards.forEach(card => {
-        // Convertimos los saltos de línea en <br> para el HTML
         const responsabilidadesHTML = card.responsabilidades.replace(/\n/g, '<br>• ');
 
         crcGrid.innerHTML += `
-            <div class="crc-card p-4 rounded border border-yellow-200 text-gray-800 flex flex-col h-full">
-                <h4 class="font-extrabold text-center border-b-2 border-yellow-400 pb-2 mb-2 text-lg underline decoration-yellow-400 decoration-2">${card.nombre_clase}</h4>
+            <div class="crc-card p-4 rounded border border-yellow-200 text-gray-800 flex flex-col h-full relative group">
+                <button onclick="deleteCRC('${card.id}')" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition z-20" title="Eliminar tarjeta">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+
+                <h4 class="font-extrabold text-center border-b-2 border-yellow-400 pb-2 mb-2 text-lg underline decoration-yellow-400 decoration-2 pr-6">${card.nombre_clase}</h4>
                 <div class="flex-1">
                     <p class="text-xs font-bold uppercase text-yellow-700 mb-1">Responsabilidades</p>
                     <p class="text-sm mb-3 leading-tight">• ${responsabilidadesHTML}</p>
@@ -184,40 +198,6 @@ document.getElementById('form-diagram').addEventListener('submit', async (e) => 
 });
 
 // js/diseno.js (Reemplaza la función existente)
-
-async function renderCRCCards() {
-    crcGrid.innerHTML = '<p class="text-sm text-gray-500">Cargando tarjetas...</p>';
-    const cards = await API.getCRCCards();
-    crcGrid.innerHTML = '';
-
-    if (cards.length === 0) {
-        crcGrid.innerHTML = '<p class="text-sm text-gray-400 italic">No hay tarjetas CRC creadas aún.</p>';
-        return;
-    }
-
-    cards.forEach(card => {
-        const responsabilidadesHTML = card.responsabilidades.replace(/\n/g, '<br>• ');
-
-        crcGrid.innerHTML += `
-            <div class="crc-card p-4 rounded border border-yellow-200 text-gray-800 flex flex-col h-full relative group">
-                <!-- Botón de eliminar (Aparece al hacer hover) -->
-                <button onclick="deleteCRC('${card.id}')" class="absolute top-2 right-2 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition z-20" title="Eliminar tarjeta">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-
-                <h4 class="font-extrabold text-center border-b-2 border-yellow-400 pb-2 mb-2 text-lg underline decoration-yellow-400 decoration-2 pr-6">${card.nombre_clase}</h4>
-                <div class="flex-1">
-                    <p class="text-xs font-bold uppercase text-yellow-700 mb-1">Responsabilidades</p>
-                    <p class="text-sm mb-3 leading-tight">• ${responsabilidadesHTML}</p>
-                </div>
-                <div class="border-t border-yellow-400 pt-2 mt-auto">
-                    <p class="text-xs font-bold uppercase text-yellow-700 mb-1">Colaboradores</p>
-                    <p class="text-sm italic">${card.colaboradores || 'Ninguno'}</p>
-                </div>
-            </div>
-        `;
-    });
-}
 
 // Función global para eliminar la tarjeta
 window.deleteCRC = async function(id) {

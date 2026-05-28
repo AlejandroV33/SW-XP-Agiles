@@ -138,14 +138,23 @@ const API = {
     // MÓDULO DE DISEÑO (CRC y DIAGRAMAS)
     // ==========================================
 
-    // ACTUALIZA LA FUNCIÓN 10: Filtrar CRC por Iteración
+    // 10. Obtener todas las tarjetas CRC filtradas (Blindado)
     async getCRCCards(iterationId) {
+        // Escudo protector: Si viene vacío o es la palabra "undefined", devolvemos un arreglo vacío de inmediato
+        if (!iterationId || iterationId === 'undefined') {
+            return [];
+        }
+
         const { data, error } = await supabaseClient
             .from('crc_cards')
             .select('*')
-            .eq('iteration_id', iterationId) // <- FILTRO
+            .eq('iteration_id', iterationId)
             .order('creado_en', { ascending: false });
-        if (error) { console.error('Error cargando CRC:', error); return []; }
+
+        if (error) {
+            console.error('Error cargando CRC:', error);
+            return [];
+        }
         return data;
     },
 
